@@ -1,0 +1,110 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+
+<mapper namespace="com.zs.pms.dao.UserDao">
+
+
+		<sql id="Uwhere">
+				<where>
+						<if test="loginname!=null and loginname!=''">
+								and loginname=#{loginname}
+						</if>
+						<if test="password!=null and password!=''">
+								and password = #{password}
+						</if>
+						<if test="isenable!=null and isenable!=''">
+								and #{isenable} = 1
+						</if>
+
+				</where>
+		</sql>
+
+
+
+
+
+
+		<!-- ************************************************************* -->
+
+
+
+		<select id="queryByUid" parameterType="int" resultType="TPermission">
+
+				select *
+				from tpermission where id in(
+				select pid from trolepermission where
+				rid =(
+				select rid from tuserrole where usid = #{id}))
+
+		</select>
+
+
+		<!-- 新增 返回主键 -->
+		<insert id="insertUser" parameterType="TUser">
+				<!-- 主键采用序列 keyProperty:属性 order：生成顺序 resultType：返回类型 -->
+				<selectKey keyProperty="id" order="BEFORE" resultType="int">
+						select seq_tuser.nextval from dual
+				</selectKey>
+				insert into
+				tuser(id,loginname,realname,sex,birthday,dept,email,isenabled,password,creator,creatime,picurl)
+				values(#{id},#{loginname},#{realname},#{sex},#{birthday},#{dept.id},#{email},#{isenabled},#{password},#{creator},sysdate,#{picurl})
+		</insert>
+
+
+		<!-- 删除用户 -->
+		<delete id="DelUser" parameterType="int">
+				delete from tuser where
+				id in
+				<foreach collection="array" item="id" separator="," open="("
+						close=")">
+						#{id}
+				</foreach>
+
+		</delete>
+
+
+		<!-- 修改用户 -->
+
+		<update id="updateUser" parameterType="TUser">
+				update tuser set
+				<where>
+						<if test="password!=null and password!=''">
+								password=#{password},
+						</if>
+						<if test="realname!=null and realname!=''">
+								realname=#{realname},
+						</if>
+						<if test="sex!=null and sex!=''">
+								sex=#{sex},
+						</if>
+						<if test="birthday!=null and birthday!=''">
+								birthday=#{birthday},
+						</if>
+						<if test="dep!=null and dep!=''">
+								dep=#{dep},
+						</if>
+						<if test="email!=null and email!=''">
+								email=#{email},
+						</if>
+						<if test="enable!=null and enable!=''">
+								enable=#{enable}
+						</if>
+						<if test="id!=null and id!=''">
+								where id = #{id}
+						</if>
+				</where>
+		</update>
+
+
+		<!-- 登录方法 -->
+		<select id="QueryByCon" parameterType="QueryUser" resultType="TUser">
+				select
+				* from tuser
+				<where>
+						<include refid="Uwhere" />
+				</where>
+				
+		</select>
+
+</mapper>
